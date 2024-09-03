@@ -198,11 +198,9 @@ def createCompileCommand(String buildFile, LogicalFile logicalFile, String membe
 
 	// add DD statements to the compile command
 	
-	if (isZUnitTestCase){
-	compile.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_testcase_srcPDS}($member)").options('shr').report(true))
-	}
-	else
-	{
+	if (isZUnitTestCase) {
+		compile.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_testcase_srcPDS}($member)").options('shr').report(true))
+	} else {
 		compile.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}($member)").options('shr').report(true))
 	}
 	
@@ -214,7 +212,6 @@ def createCompileCommand(String buildFile, LogicalFile logicalFile, String membe
 
 	// define object dataset allocation
 	def cobolProgramUsage = applicationDescriptorUtils.getFileUsage(applicationDescriptor, "cobol", member)
-	println("**** $member -> $cobolProgramUsage")
 	if (cobolProgramUsage && !cobolProgramUsage.equals("main")) {
 		compile.dd(new DDStatement().name("SYSLIN").dsn("${props.cobol_objPDS}($member)").options('shr').output(true).deployType("OBJ"))
 	} else {
