@@ -13,6 +13,8 @@ import com.ibm.dbb.build.report.records.*
 @Field def buildUtils= loadScript(new File("${props.zAppBuildDir}/utilities/BuildUtilities.groovy"))
 @Field def impactUtils= loadScript(new File("${props.zAppBuildDir}/utilities/ImpactUtilities.groovy"))
 @Field def bindUtils= loadScript(new File("${props.zAppBuildDir}/utilities/BindUtilities.groovy"))
+@Field def applicationDescriptorUtils = loadScript(new File("${props.zAppBuildDir}/utilities/applicationDescriptorUtils.groovy"))
+@Field def applicationDescriptor
 	
 println("** Building ${argMap.buildList.size()} ${argMap.buildList.size() == 1 ? 'file' : 'files'} mapped to ${this.class.getName()}.groovy script")
 
@@ -22,6 +24,15 @@ buildUtils.assertBuildProperties(props.cobol_requiredBuildProperties)
 // create language datasets
 def langQualifier = "cobol"
 buildUtils.createLanguageDatasets(langQualifier)
+
+
+// Reading Application Descriptor if it exists
+File applicationDescriptorFile = new File("${props.workspace}/applicationDescriptor.yml")
+if (applicationDescriptorFile.exists()) {
+	applicationDescriptor = applicationDescriptorUtils.readApplicationDescriptor(applicationDescriptorFile)
+} else {
+	println("*! [WARNING] File '${props.workspace}/applicationDescriptor.yml' not found")
+}
 
 // sort the build list based on build file rank if provided
 List<String> sortedList = buildUtils.sortBuildList(argMap.buildList.sort(), 'cobol_fileBuildRank')
@@ -202,7 +213,13 @@ def createCompileCommand(String buildFile, LogicalFile logicalFile, String membe
 	}
 
 	// define object dataset allocation
-	compile.dd(new DDStatement().name("SYSLIN").dsn("${props.cobol_objPDS}($member)").options('shr').output(true))
+	def cobolProgramUsage = applicationDescriptorUtils.getFileUsage(applicationDescriptor, "cobol", member)
+	println("**** $member -> $cobolProgramUsage")
+	if (cobolProgramUsage && !cobolProgramUsage.equals("main")) {
+		compile.dd(new DDStatement().name("SYSLIN").dsn("${props.cobol_objPDS}($member)").options('shr').output(true).deployType("OBJ"))
+	} else {
+		compile.dd(new DDStatement().name("SYSLIN").dsn("${props.cobol_objPDS}($member)").options('shr').output(true))
+	}
 
 	// add a syslib to the compile command with optional bms output copybook and CICS concatenation
 	compile.dd(new DDStatement().name("SYSLIB").dsn(props.cobol_cpyPDS).options("shr"))

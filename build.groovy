@@ -21,6 +21,7 @@ import groovy.cli.commons.*
 @Field def filePropUtils= loadScript(new File("utilities/FilePropUtilities.groovy"))
 @Field def dependencyScannerUtils= loadScript(new File("utilities/DependencyScannerUtilities.groovy"))
 @Field def validationUtils= loadScript(new File("utilities/DatasetValidationUtilities.groovy"))
+
 @Field String hashPrefix = ':githash:'
 @Field String giturlPrefix = ':giturl:'
 @Field String gitchangedfilesPrefix = ':gitchangedfiles:'
